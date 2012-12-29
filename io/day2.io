@@ -123,7 +123,73 @@ transposeMatrix transpose
 transposeMatrix listList println
 
 //7. Write the matrix to a file, and read a matrix from a file.
+Sequence concat := method(other_sequence,
+  "#{self}#{other_sequence}" interpolate
+)
+
+Matrix asCSV := method(
+  trans := self clone
+  trans transpose
+  s := "" asMutable
+  trans listList foreach(list,
+    list foreach(cell,
+      s = s concat(cell)
+      s = s concat(", ")
+    )
+    s = s asMutable removeSuffix(", ")
+    s = s concat("\n")
+  )
+  s
+)
+
+Matrix fromCSV := method(file_name,
+  file := File with(file_name)
+  file openForReading
+  lines := file readLines
+  parsed_lines := list()
+  lines foreach(line,
+    parsed_lines append(line split(", "))
+  )
+  self listList := parsed_lines
+  self transpose
+)
+
+fileMatrix := Matrix clone
+fileMatrix dim(2,2)
+fileMatrix set(0,0,1)
+fileMatrix set(0,1,2)
+fileMatrix set(1,0,3)
+fileMatrix set(1,1,4)
+
+f := File with("matrix.csv")
+f remove
+f openForUpdating
+f write(fileMatrix asCSV)
+f close
+
+g := Matrix clone
+g fromCSV("matrix.csv")
+g listList println
+fileMatrix listList println
 
 
-//8. Write a program that gives you ten tries to guess a random number from 1–100. If you would like, give a hint of “hotter” or “colder” after the first guess.
+//8. Write a program that gives you ten tries to guess a random number from 1–100. If you would like, give a hint of “hotter” or “colder” after the first guess
 
+rand := Random value(100) ceil
+diff := nil
+"I'm thinking of a number between 1 and 100" println
+loop(
+  guess := File standardInput readLine("Guess:") asNumber
+  if(guess == rand,
+    "Correct!" println
+    break,
+    if(diff,
+      if( (rand - guess) abs < diff,
+      "Warmer" println,
+      "Colder" println
+      ),
+      "Nope." println
+    )
+    diff := (rand - guess) abs
+  )
+)
